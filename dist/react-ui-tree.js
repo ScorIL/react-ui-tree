@@ -39,7 +39,8 @@ module.exports = React.createClass({
         y: null,
         w: null,
         h: null
-      }
+      },
+      isNewIndex: false
     };
   },
   getDraggingDom: function getDraggingDom() {
@@ -111,11 +112,13 @@ module.exports = React.createClass({
   drag: function drag(e) {
     if (this._start) {
       this.setState({
-        dragging: this.dragging
+        dragging: this.dragging,
+        isNewIndex: false
       });
       this._start = false;
     }
 
+    var isNewIndex = !!this.state.isNewIndex;
     var tree = this.state.tree;
     var dragging = this.state.dragging;
     var paddingLeft = this.props.paddingLeft;
@@ -157,6 +160,7 @@ module.exports = React.createClass({
       index = newIndex;
       newIndex.node.collapsed = collapsed;
       dragging.id = newIndex.id;
+      isNewIndex = true;
     }
 
     if (diffY < 0) {
@@ -187,14 +191,21 @@ module.exports = React.createClass({
     if (newIndex) {
       newIndex.node.collapsed = collapsed;
       dragging.id = newIndex.id;
+      isNewIndex = true;
     }
 
     this.setState({
       tree: tree,
-      dragging: dragging
+      dragging: dragging,
+      isNewIndex: isNewIndex
     });
   },
   dragEnd: function dragEnd() {
+    if (this.state.dragging && this.state.dragging.id) this.change(this.state.tree, 'dragEnd');
+    if (this.state.isNewIndex) {
+      if (this.props.onIndexChange) this.props.onIndexChange(tree.obj);
+      this.change(this.state.tree, 'indexChanged');
+    }
     this.setState({
       dragging: {
         id: null,
@@ -202,16 +213,16 @@ module.exports = React.createClass({
         y: null,
         w: null,
         h: null
-      }
+      },
+      isNewIndex: false
     });
 
-    this.change(this.state.tree);
     window.removeEventListener('mousemove', this.drag);
     window.removeEventListener('mouseup', this.dragEnd);
   },
-  change: function change(tree) {
+  change: function change(tree, type) {
     this._updated = true;
-    if (this.props.onChange) this.props.onChange(tree.obj);
+    if (this.props.onChange) this.props.onChange(tree.obj, type);
   },
   toggleCollapse: function toggleCollapse(nodeId) {
     var tree = this.state.tree;
@@ -224,6 +235,6 @@ module.exports = React.createClass({
       tree: tree
     });
 
-    this.change(tree);
+    this.change(tree, 'toggleCollapse');
   }
 });
