@@ -203,7 +203,7 @@ module.exports = React.createClass({
   dragEnd: function dragEnd() {
     if (this.state.dragging && this.state.dragging.id) this.change(this.state.tree, 'dragEnd');
     if (this.state.isNewIndex) {
-      if (this.props.onIndexChange) this.props.onIndexChange(tree.obj);
+      if (this.props.onIndexChange) this.props.onIndexChange(this.state.tree.obj);
       this.change(this.state.tree, 'indexChanged');
     }
     this.setState({
